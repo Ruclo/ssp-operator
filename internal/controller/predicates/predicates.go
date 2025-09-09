@@ -34,3 +34,11 @@ func getSpec(obj client.Object) (interface{}, bool) {
 	}
 	return specVal.Interface(), true
 }
+
+type DeletionTimestampChangedPredicate struct {
+	predicate.Funcs
+}
+
+func (p DeletionTimestampChangedPredicate) Update(e event.UpdateEvent) bool {
+	return !e.ObjectNew.GetDeletionTimestamp().Equal(e.ObjectOld.GetDeletionTimestamp())
+}
