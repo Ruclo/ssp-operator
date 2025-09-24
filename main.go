@@ -41,13 +41,14 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
-	"sigs.k8s.io/controller-runtime/pkg/metrics"
+	k8smetrics "sigs.k8s.io/controller-runtime/pkg/metrics"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	ssp "kubevirt.io/ssp-operator/api/v1beta3"
 	"kubevirt.io/ssp-operator/internal/common"
 	"kubevirt.io/ssp-operator/internal/controllers"
+	"kubevirt.io/ssp-operator/internal/operands/metrics"
 	sspMetrics "kubevirt.io/ssp-operator/pkg/monitoring/metrics/ssp-operator"
 	"kubevirt.io/ssp-operator/pkg/monitoring/rules"
 	"kubevirt.io/ssp-operator/webhooks"
@@ -162,7 +163,7 @@ func (s *prometheusServer) NeedLeaderElection() bool {
 
 func (s *prometheusServer) Start(ctx context.Context) error {
 	setupLog.Info("Starting Prometheus metrics endpoint server with TLS")
-	handler := promhttp.HandlerFor(metrics.Registry, promhttp.HandlerOpts{})
+	handler := promhttp.HandlerFor(k8smetrics.Registry, promhttp.HandlerOpts{})
 	mux := http.NewServeMux()
 	mux.Handle("/metrics", handler)
 
@@ -326,6 +327,8 @@ func createCertificateSymlinks() error {
 		// instead of tls.crt/tls.key like the SDK expects. Creating symlinks to allow
 		// the operator to find and use them.
 		setupLog.Info("OLM cert directory found, copying cert files")
+		// Set OLM deployment flag for ServiceMonitor CA configuration
+		metrics.SetOLMDeployment(true)
 
 		err := os.MkdirAll(sdkTLSDir, 0755)
 		if err != nil {
@@ -343,6 +346,8 @@ func createCertificateSymlinks() error {
 		}
 	} else {
 		setupLog.Info("OLM cert directory not found, using default cert directory")
+		// Set non-OLM deployment flag for ServiceMonitor CA configuration
+		metrics.SetOLMDeployment(false)
 	}
 
 	return nil
