@@ -68,7 +68,6 @@ func (t *templateValidator) Reconcile(request *common.Request) ([]common.Reconci
 		reconcileServiceAccount,
 		reconcileClusterRoleBinding,
 		reconcileService,
-		reconcilePrometheusService,
 		reconcileConfigMap,
 		reconcileDeployment,
 		reconcileValidatingWebhook,
@@ -121,13 +120,6 @@ func reconcileClusterRoleBinding(request *common.Request) (common.ReconcileResul
 func reconcileService(request *common.Request) (common.ReconcileResult, error) {
 	return common.CreateOrUpdate(request).
 		NamespacedResource(newService(request.Namespace)).
-		WithAppLabels(operandName, operandComponent).
-		Reconcile()
-}
-
-func reconcilePrometheusService(request *common.Request) (common.ReconcileResult, error) {
-	return common.CreateOrUpdate(request).
-		NamespacedResource(newPrometheusService(request.Namespace)).
 		WithAppLabels(operandName, operandComponent).
 		Reconcile()
 }

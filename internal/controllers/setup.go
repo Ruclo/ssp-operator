@@ -93,13 +93,7 @@ func CreateControllers(ctx context.Context, apiReader client.Reader, olmDeployme
 		}
 	}
 
-	serviceController, err := CreateServiceController()
-	if err != nil {
-		return nil, fmt.Errorf("failed to create service controller: %w", err)
-	}
-
 	return []Controller{
-		serviceController,
 		NewWebhookConfigurationController(),
 		NewVmController(),
 		NewSspController(infrastructureTopology, sspOperands, olmDeployment, sspServiceHostname),

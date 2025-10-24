@@ -55,6 +55,8 @@ func (m *metrics) Reconcile(request *common.Request) ([]common.ReconcileResult, 
 		reconcilePrometheusRule,
 		reconcileMonitoringRbacRole,
 		reconcileMonitoringRbacRoleBinding,
+		reconcileSspMetricsService,
+		reconcileValidatorMetricsService,
 	)
 }
 
@@ -78,14 +80,28 @@ const (
 
 func reconcileSspMetricsMonitor(request *common.Request) (common.ReconcileResult, error) {
 	return common.CreateOrUpdate(request).
-		NamespacedResource(newSspServiceMonitor(*request)).
+		NamespacedResource(newSspServiceMonitor(request.Namespace, request.OLMDeployment, request.SSPServiceHostname)).
 		WithAppLabels(operandName, operandComponent).
 		Reconcile()
 }
 
 func reconcileValidatorMetricsMonitor(request *common.Request) (common.ReconcileResult, error) {
 	return common.CreateOrUpdate(request).
-		NamespacedResource(newValidatorServiceMonitor(*request)).
+		NamespacedResource(newValidatorServiceMonitor(request.Namespace)).
+		WithAppLabels(operandName, operandComponent).
+		Reconcile()
+}
+
+func reconcileValidatorMetricsService(request *common.Request) (common.ReconcileResult, error) {
+	return common.CreateOrUpdate(request).
+		NamespacedResource(newValidatorMetricsService(request.Namespace)).
+		WithAppLabels(operandName, operandComponent).
+		Reconcile()
+}
+
+func reconcileSspMetricsService(request *common.Request) (common.ReconcileResult, error) {
+	return common.CreateOrUpdate(request).
+		NamespacedResource(newSspMetricsService(request.Namespace)).
 		WithAppLabels(operandName, operandComponent).
 		Reconcile()
 }

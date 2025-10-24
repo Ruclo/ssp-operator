@@ -8,9 +8,11 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"k8s.io/apimachinery/pkg/util/intstr"
 
 	templatev1 "github.com/openshift/api/template/v1"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	corev1 "k8s.io/api/core/v1"
 	rbac "k8s.io/api/rbac/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/rand"
@@ -36,17 +38,47 @@ func mergeMaps(maps ...map[string]string) map[string]string {
 
 var _ = Describe("Metrics", func() {
 	var (
-		prometheusRuleRes         testResource
-		serviceMonitorRes         testResource
-		rbacClusterRoleRes        testResource
-		rbacClusterRoleBindingRes testResource
+		sspMetricsServiceRes       testResource
+		validatorMetricsServiceRes testResource
+		prometheusRuleRes          testResource
+		serviceMonitorRes          testResource
+		rbacClusterRoleRes         testResource
+		rbacClusterRoleBindingRes  testResource
 	)
 
 	BeforeEach(func() {
 		expectedLabels := expectedLabelsFor("metrics", common.AppComponentMonitoring)
 
+		sspMetricsServiceRes = testResource{
+			Name:           metrics.SspMetricsServiceName,
+			Namespace:      strategy.GetNamespace(),
+			Resource:       &corev1.Service{},
+			ExpectedLabels: metrics.SspMetricsServiceLabels(),
+			UpdateFunc: func(service *corev1.Service) {
+				service.Spec.Ports[0].Port = 443
+				service.Spec.Ports[0].TargetPort = intstr.FromString("invalid-port")
+			},
+			EqualsFunc: func(old *corev1.Service, new *corev1.Service) bool {
+				return reflect.DeepEqual(old.Spec, new.Spec)
+			},
+		}
+
+		validatorMetricsServiceRes = testResource{
+			Name:           metrics.TemplateValidatorMetricsServiceName,
+			Namespace:      strategy.GetNamespace(),
+			Resource:       &corev1.Service{},
+			ExpectedLabels: metrics.ValidatorMetricsServiceLabels(),
+			UpdateFunc: func(service *corev1.Service) {
+				service.Spec.Ports[0].Port = 443
+				service.Spec.Ports[0].TargetPort = intstr.FromString("invalid-port")
+			},
+			EqualsFunc: func(old *corev1.Service, new *corev1.Service) bool {
+				return reflect.DeepEqual(old.Spec, new.Spec)
+			},
+		}
+
 		serviceMonitorRes = testResource{
-			Name:           rules.RuleName,
+			Name:           metrics.SspMetricsServiceName,
 			Namespace:      strategy.GetNamespace(),
 			Resource:       &promv1.ServiceMonitor{},
 			ExpectedLabels: mergeMaps(expectedLabels, metrics.ServiceMonitorLabels()),
@@ -109,6 +141,8 @@ var _ = Describe("Metrics", func() {
 			err := apiClient.Get(ctx, res.GetKey(), res.NewResource())
 			Expect(err).ToNot(HaveOccurred())
 		},
+			Entry("[test_id:TODO] ssp metrics service", &sspMetricsServiceRes),
+			Entry("[test_id:TODO] template validator metrics service", &validatorMetricsServiceRes),
 			Entry("[test_id:8346] service monitor", &serviceMonitorRes),
 			Entry("[test_id:8347] role", &rbacClusterRoleRes),
 			Entry("[test_id:8345] role binding", &rbacClusterRoleBindingRes),
@@ -116,6 +150,8 @@ var _ = Describe("Metrics", func() {
 		)
 
 		DescribeTable("should set app labels", expectAppLabels,
+			Entry("[test_id:TODO] ssp metrics service", &sspMetricsServiceRes),
+			Entry("[test_id:TODO] template validator metrics service", &validatorMetricsServiceRes),
 			Entry("[test_id:8348] service monitor", &serviceMonitorRes),
 			Entry("[test_id:8349] role", &rbacClusterRoleRes),
 			Entry("[test_id:8350] role binding", &rbacClusterRoleBindingRes),
@@ -125,6 +161,8 @@ var _ = Describe("Metrics", func() {
 
 	Context("resource deletion", func() {
 		DescribeTable("recreate after delete", decorators.Conformance, expectRecreateAfterDelete,
+			Entry("[test_id:TODO] ssp metrics service", &sspMetricsServiceRes),
+			Entry("[test_id:TODO] template validator metrics service", &validatorMetricsServiceRes),
 			Entry("[test_id:8351] service monitor", &serviceMonitorRes),
 			Entry("[test_id:8352] role", &rbacClusterRoleRes),
 			Entry("[test_id:8355] role binding", &rbacClusterRoleBindingRes),
@@ -134,6 +172,8 @@ var _ = Describe("Metrics", func() {
 
 	Context("resource change", func() {
 		DescribeTable("should restore modified resource", decorators.Conformance, expectRestoreAfterUpdate,
+			Entry("[test_id:TODO] ssp metrics service", &sspMetricsServiceRes),
+			Entry("[test_id:TODO] template validator metrics service", &validatorMetricsServiceRes),
 			Entry("[test_id:8356] service monitor", &serviceMonitorRes),
 			Entry("[test_id:8353] role", &rbacClusterRoleRes),
 			Entry("[test_id:8354] role binding", &rbacClusterRoleBindingRes),
@@ -150,6 +190,8 @@ var _ = Describe("Metrics", func() {
 			})
 
 			DescribeTable("should restore modified resource with pause", decorators.Conformance, expectRestoreAfterUpdateWithPause,
+				Entry("[test_id:TODO] ssp metrics service", &sspMetricsServiceRes),
+				Entry("[test_id:TODO] template validator metrics service", &validatorMetricsServiceRes),
 				Entry("[test_id:8357] service monitor", &serviceMonitorRes),
 				Entry("[test_id:8358] role", &rbacClusterRoleRes),
 				Entry("[test_id:8361] role binding", &rbacClusterRoleBindingRes),
@@ -158,6 +200,8 @@ var _ = Describe("Metrics", func() {
 		})
 
 		DescribeTable("should restore modified app labels", expectAppLabelsRestoreAfterUpdate,
+			Entry("[test_id:TODO] ssp metrics service", &sspMetricsServiceRes),
+			Entry("[test_id:TODO] template validator metrics service", &validatorMetricsServiceRes),
 			Entry("[test_id:8362] service monitor", &serviceMonitorRes),
 			Entry("[test_id:8359] role", &rbacClusterRoleRes),
 			Entry("[test_id:8360] role binding", &rbacClusterRoleBindingRes),

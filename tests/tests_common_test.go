@@ -163,7 +163,7 @@ func metricsPort(pod core.Pod) (uint16, error) {
 	}
 	ports := container.Ports
 	for _, port := range ports {
-		if port.Name == metrics.MetricsPortName {
+		if port.Name == metrics.SspMetricsPortName {
 			return uint16(port.ContainerPort), nil
 		}
 	}

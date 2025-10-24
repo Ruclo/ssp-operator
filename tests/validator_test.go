@@ -10,7 +10,6 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-
 	templatev1 "github.com/openshift/api/template/v1"
 	conditionsv1 "github.com/openshift/custom-resource-status/conditions/v1"
 	admission "k8s.io/api/admissionregistration/v1"
@@ -76,7 +75,6 @@ var _ = Describe("Template validator operand", func() {
 		serviceAccountRes                 testResource
 		serviceRes                        testResource
 		configMapRes                      testResource
-		serviceMetricsRes                 testResource
 		deploymentRes                     testResource
 		networkPolicyKubeAPIAndDNSRes     testResource
 		networkPolicyWebhookAndMetricsRes testResource
@@ -154,19 +152,7 @@ var _ = Describe("Template validator operand", func() {
 					reflect.DeepEqual(old.BinaryData, new.BinaryData)
 			},
 		}
-		serviceMetricsRes = testResource{
-			Name:           validator.MetricsServiceName,
-			Namespace:      strategy.GetNamespace(),
-			Resource:       &core.Service{},
-			ExpectedLabels: validator.PrometheusServiceLabels(),
-			UpdateFunc: func(service *core.Service) {
-				service.Spec.Ports[0].Port = 443
-				service.Spec.Ports[0].TargetPort = intstr.FromInt32(8443)
-			},
-			EqualsFunc: func(old *core.Service, new *core.Service) bool {
-				return reflect.DeepEqual(old.Spec, new.Spec)
-			},
-		}
+
 		deploymentRes = testDeploymentResource()
 		networkPolicyKubeAPIAndDNSRes = testNetworkPolicyResource(
 			"ssp-operator-allow-egress-to-kube-api-and-dns-virt-template-validator",
@@ -211,7 +197,6 @@ var _ = Describe("Template validator operand", func() {
 			Entry("[test_id:4910] service account", &serviceAccountRes),
 			Entry("[test_id:4911] service", &serviceRes),
 			Entry("[test_id:TODO] ConfigMap", &configMapRes),
-			Entry("[test_id:8366] metrics service", &serviceMetricsRes),
 			Entry("[test_id:4912] deployment", &deploymentRes),
 			Entry("[test_id:TODO] network policy kube api and dns", &networkPolicyKubeAPIAndDNSRes),
 			Entry("[test_id:TODO] network policy webhook and metrics", &networkPolicyWebhookAndMetricsRes),
@@ -225,7 +210,6 @@ var _ = Describe("Template validator operand", func() {
 			Entry("[test_id:6201]service account", &serviceAccountRes),
 			Entry("[test_id:5827]service", &serviceRes),
 			Entry("[test_id:TODO]ConfigMap", &configMapRes),
-			Entry("[test_id:8367]metrics service", &serviceMetricsRes),
 			Entry("[test_id:5828]deployment", &deploymentRes),
 			Entry("[test_id:TODO]network policy kube api and dns", &networkPolicyKubeAPIAndDNSRes),
 			Entry("[test_id:TODO]network policy webhook and metrics", &networkPolicyWebhookAndMetricsRes),
@@ -241,7 +225,6 @@ var _ = Describe("Template validator operand", func() {
 			Entry("[test_id:4920] service account", &serviceAccountRes),
 			Entry("[test_id:4922] service", &serviceRes),
 			Entry("[test_id:TODO] ConfigMap", &configMapRes),
-			Entry("[test_id:8370] metrics service", &serviceMetricsRes),
 			Entry("[test_id:4924] deployment", &deploymentRes),
 			Entry("[test_id:TODO] network policy kube api and dns", &networkPolicyKubeAPIAndDNSRes),
 			Entry("[test_id:TODO] network policy webhook and metrics", &networkPolicyWebhookAndMetricsRes),
@@ -256,7 +239,6 @@ var _ = Describe("Template validator operand", func() {
 			Entry("[test_id:4919] validating webhook configuration", &webhookConfigRes),
 			Entry("[test_id:4923] service", &serviceRes),
 			Entry("[test_id:TODO] ConfigMap", &configMapRes),
-			Entry("[test_id:8371] metrics service", &serviceMetricsRes),
 			Entry("[test_id:4925] deployment", &deploymentRes),
 			Entry("[test_id:TODO] network policy kube api and dns", &networkPolicyKubeAPIAndDNSRes),
 			Entry("[test_id:TODO] network policy webhook and metrics", &networkPolicyWebhookAndMetricsRes),
@@ -278,7 +260,6 @@ var _ = Describe("Template validator operand", func() {
 				Entry("[test_id:5536] validating webhook configuration", &webhookConfigRes),
 				Entry("[test_id:5538] service", &serviceRes),
 				Entry("[test_id:TODO] ConfigMap", &configMapRes),
-				Entry("[test_id:8368] metrics service", &serviceMetricsRes),
 				Entry("[test_id:5539] deployment", &deploymentRes),
 				Entry("[test_id:TODO] network policy kube api and dns", &networkPolicyKubeAPIAndDNSRes),
 				Entry("[test_id:TODO] network policy webhook and metrics", &networkPolicyWebhookAndMetricsRes),
@@ -292,7 +273,6 @@ var _ = Describe("Template validator operand", func() {
 			Entry("[test_id:6207] validating webhook configuration", &webhookConfigRes),
 			Entry("[test_id:6208] service", &serviceRes),
 			Entry("[test_id:TODO] ConfigMap", &configMapRes),
-			Entry("[test_id:8369] metrics service", &serviceMetricsRes),
 			Entry("[test_id:6209] deployment", &deploymentRes),
 			Entry("[test_id:TODO] network policy kube api and dns", &networkPolicyKubeAPIAndDNSRes),
 			Entry("[test_id:TODO] network policy webhook and metrics", &networkPolicyWebhookAndMetricsRes),
